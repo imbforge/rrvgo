@@ -66,7 +66,7 @@
       <h1 data-toc-skip>Using the rrvgo package</h1>
                         <h4 class="author">Sergi Sayols</h4>
             
-            <h4 class="date">2020-09-22</h4>
+            <h4 class="date">2020-10-02</h4>
       
       
       <div class="hidden name"><code>rrvgo.Rmd</code></div>
@@ -107,22 +107,20 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#calculating-the-similarity-matrix-and-reducing-go-terms" class="anchor"></a>Calculating the similarity matrix and reducing GO terms</h2>
 <p>First step is to get the similarity matrix between terms. The function <code>calculateSimMatrix</code> takes a list of GO terms for which the semantic simlarity is to be calculated, an <code>OrgDb</code> object for an organism, the ontology of interest and the method to calculate the similarity scores.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="kw"><a href="https://www.bioconductor.org/packages/rrvgo">rrvgo</a></span>)
-<span class="kw">go_analysis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"extdata/example.txt"</span>, package=<span class="st">"rrvgo"</span>))
-<span class="kw">simMatrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateSimMatrix.html">calculateSimMatrix</a></span>(<span class="kw">go_analysis</span><span class="op">$</span><span class="kw">ID</span>,
-                                orgdb=<span class="st">"org.Hs.eg.db"</span>,
-                                ont=<span class="st">"BP"</span>,
-                                method=<span class="st">"Rel"</span>)
-</pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.bioconductor.org/packages/rrvgo">rrvgo</a></span><span class="op">)</span>
+<span class="va">go_analysis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span><span class="op">(</span><span class="st">"extdata/example.txt"</span>, package<span class="op">=</span><span class="st">"rrvgo"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">simMatrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculateSimMatrix.html">calculateSimMatrix</a></span><span class="op">(</span><span class="va">go_analysis</span><span class="op">$</span><span class="va">ID</span>,
+                                orgdb<span class="op">=</span><span class="st">"org.Hs.eg.db"</span>,
+                                ont<span class="op">=</span><span class="st">"BP"</span>,
+                                method<span class="op">=</span><span class="st">"Rel"</span><span class="op">)</span></pre></div>
 <p>The <code>semdata</code> parameter (see <code><a href="../reference/calculateSimMatrix.html">?calculateSimMatrix</a></code>) is not mandatory as it is calculated on demand. If the function needs to run several times with the same organism, it’s advisable to save the <code><a href="https://rdrr.io/pkg/GOSemSim/man/godata.html">GOSemSim::godata(orgdb, ont=ont)</a></code> object, in order to reuse it between calls and speedup the calculation of the similarity matrix.</p>
 <p>From the similarity matrix one can group terms based on similarity. <code>rrvgo</code> provides the <code>reduceSimMatrix</code> function for that. It takes as arguments i) the similarity matrix, ii) an optional <em>named</em> vector of scores associated to each GO term, iii) a similarity threshold used for grouping terms, and iv) an orgdb object.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit">
-<span class="kw">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span>(<span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span>(<span class="kw">go_analysis</span><span class="op">$</span><span class="kw">qvalue</span>), <span class="kw">go_analysis</span><span class="op">$</span><span class="kw">ID</span>)
-<span class="kw">reducedTerms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reduceSimMatrix.html">reduceSimMatrix</a></span>(<span class="kw">simMatrix</span>,
-                                <span class="kw">scores</span>,
-                                threshold=<span class="fl">0.7</span>,
-                                orgdb=<span class="st">"org.Hs.eg.db"</span>)
-</pre></div>
+<span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">go_analysis</span><span class="op">$</span><span class="va">qvalue</span><span class="op">)</span>, <span class="va">go_analysis</span><span class="op">$</span><span class="va">ID</span><span class="op">)</span>
+<span class="va">reducedTerms</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/reduceSimMatrix.html">reduceSimMatrix</a></span><span class="op">(</span><span class="va">simMatrix</span>,
+                                <span class="va">scores</span>,
+                                threshold<span class="op">=</span><span class="fl">0.7</span>,
+                                orgdb<span class="op">=</span><span class="st">"org.Hs.eg.db"</span><span class="op">)</span></pre></div>
 <p><code>reduceSimMatrix</code> selects as the group representative the term with the higher score within the group. In case the vector of scores is not available, <code>reduceSimMatrix</code> will get the GO term size from the <code>OrgDb</code> object and use it as the score, thus favoring broader terms. <strong>Please note that scores are interpreted in the direction that higher are better</strong>, therefore if you use p-values as scores, minus log-transform them before.</p>
 <p>Higher thresholds force higher similarity between terms of a groups, resulting in more groups containing less similar terms.</p>
 </div>
@@ -135,12 +133,11 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#similarity-matrix-heatmap" class="anchor"></a>Similarity matrix heatmap</h3>
 <p>Plot similarity matrix as a heatmap, with clustering of columns of rows turned on by default (thus arranging together similar terms).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="fu"><a href="../reference/heatmapPlot.html">heatmapPlot</a></span>(<span class="kw">simMatrix</span>,
-            <span class="kw">reducedTerms</span>,
-            annotateParent=<span class="fl">TRUE</span>,
-            annotationLabel=<span class="st">"parentTerm"</span>,
-            fontsize=<span class="fl">6</span>)
-</pre></div>
+<span class="fu"><a href="../reference/heatmapPlot.html">heatmapPlot</a></span><span class="op">(</span><span class="va">simMatrix</span>,
+            <span class="va">reducedTerms</span>,
+            annotateParent<span class="op">=</span><span class="cn">TRUE</span>,
+            annotationLabel<span class="op">=</span><span class="st">"parentTerm"</span>,
+            fontsize<span class="op">=</span><span class="fl">6</span><span class="op">)</span></pre></div>
 <p><img src="rrvgo_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
 <p>The function internally uses <a href="https://cran.r-project.org/web/packages/pheatmap/index.html"><code>pheatmap</code></a>, and further parameters can be passed to this function.</p>
 </div>
@@ -149,8 +146,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#scatter-plot-depicting-groups-and-distance-between-terms" class="anchor"></a>Scatter plot depicting groups and distance between terms</h3>
 <p>Plot GO terms as scattered points. Distances between points represent the similarity between terms, and axes are the first 2 components of applying a PCoA to the (di)similarity matrix. Size of the point represents the provided scores or, in its absence, the number of genes the GO term contains.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit">
-<span class="fu"><a href="../reference/scatterPlot.html">scatterPlot</a></span>(<span class="kw">simMatrix</span>, <span class="kw">reducedTerms</span>)
-</pre></div>
+<span class="fu"><a href="../reference/scatterPlot.html">scatterPlot</a></span><span class="op">(</span><span class="va">simMatrix</span>, <span class="va">reducedTerms</span><span class="op">)</span></pre></div>
 <p><img src="rrvgo_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
 <div id="treemap-plot" class="section level3">
@@ -158,8 +154,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#treemap-plot" class="anchor"></a>Treemap plot</h3>
 <p>Treemaps are space-filling visualization of hierarchical structures. The terms are grouped (colored) based on their parent, and the space used by the term is proportional to the score. Treemaps can help with the interpretation of the summarized results and also comparing differents sets of GO terms.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit">
-<span class="fu"><a href="../reference/treemapPlot.html">treemapPlot</a></span>(<span class="kw">reducedTerms</span>)
-</pre></div>
+<span class="fu"><a href="../reference/treemapPlot.html">treemapPlot</a></span><span class="op">(</span><span class="va">reducedTerms</span><span class="op">)</span></pre></div>
 <p><img src="rrvgo_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <p>The function internally uses <a href="https://cran.r-project.org/web/packages/treemap/index.html"><code>treemap</code></a>, and further parameters can be passed to this function.</p>
 </div>
@@ -168,8 +163,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#word-cloud" class="anchor"></a>Word cloud</h3>
 <p>Word clouds are visualizations which reproduce a text putting emphasis to words which appear frequently in a text. They can help to identify processes and functions that happen more commonly in a set of enriched GO terms, as well as comparing between different sets.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit">
-<span class="fu"><a href="../reference/wordcloudPlot.html">wordcloudPlot</a></span>(<span class="kw">reducedTerms</span>, min.freq=<span class="fl">1</span>, colors=<span class="st">"black"</span>)
-</pre></div>
+<span class="fu"><a href="../reference/wordcloudPlot.html">wordcloudPlot</a></span><span class="op">(</span><span class="va">reducedTerms</span>, min.freq<span class="op">=</span><span class="fl">1</span>, colors<span class="op">=</span><span class="st">"black"</span><span class="op">)</span></pre></div>
 <p><img src="rrvgo_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>The function internally uses <a href="https://cran.r-project.org/web/packages/wordcloud/index.html"><code>wrodcloud</code></a>, and further parameters can be passed to this function.</p>
 </div>
@@ -179,8 +173,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#shiny-app" class="anchor"></a>Shiny app</h2>
 <p>To make the software more accessible to a non-technical audience, <code>rrvgo</code> packages a shiny app which can be accessed calling the <code><a href="../reference/shiny_rrvgo.html">shiny_rrvgo()</a></code> function from the R console.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit">
-<span class="kw">rrvgo</span>::<span class="fu"><a href="../reference/shiny_rrvgo.html">shiny_rrvgo</a></span>()
-</pre></div>
+<span class="fu">rrvgo</span><span class="fu">::</span><span class="fu"><a href="../reference/shiny_rrvgo.html">shiny_rrvgo</a></span><span class="op">(</span><span class="op">)</span></pre></div>
 <div class="figure">
 <img src="figures/shiny_app.png" alt=""><p class="caption">shiny_app</p>
 </div>
@@ -289,9 +282,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </table>
 <p>If the organism is not supported in Bioconductor, you can still build your own <code>OrgDb</code> object usign the <a href="https://bioconductor.org/packages/release/bioc/html/AnnotationForge.html"><code>AnnotationForge</code></a> package and rendering the necessary data for semantic similarity using the <code>GOSemSim</code> package with:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit">
-<span class="kw">my_new_fancy_orgdb_object</span> <span class="op">&lt;-</span> <span class="st">'org.Zz.eg.db'</span>
-<span class="kw">hsGO</span> <span class="op">&lt;-</span> <span class="kw">GOSemSim</span>::<span class="fu"><a href="https://rdrr.io/pkg/GOSemSim/man/godata.html">godata</a></span>(<span class="kw">my_new_fancy_orgdb_object</span>, ont=<span class="st">"MF"</span>)
-</pre></div>
+<span class="va">my_new_fancy_orgdb_object</span> <span class="op">&lt;-</span> <span class="st">'org.Zz.eg.db'</span>
+<span class="va">hsGO</span> <span class="op">&lt;-</span> <span class="fu">GOSemSim</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/GOSemSim/man/godata.html">godata</a></span><span class="op">(</span><span class="va">my_new_fancy_orgdb_object</span>, ont<span class="op">=</span><span class="st">"MF"</span><span class="op">)</span></pre></div>
 </div>
 <div id="gene-ontologies" class="section level2">
 <h2 class="hasAnchor">
@@ -309,8 +301,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <a href="#citing-rrvgo" class="anchor"></a>Citing rrvgo</h1>
 <p>Please consider citing rrvgo if used in support of your own research:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit">
-<span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span>(<span class="st">"rrvgo"</span>)
-</pre></div>
+<span class="fu"><a href="https://rdrr.io/r/utils/citation.html">citation</a></span><span class="op">(</span><span class="st">"rrvgo"</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##   Sergi Sayols (2020). rrvgo: a Bioconductor package to reduce and
 ##   visualize Gene Ontology terms
@@ -347,21 +338,21 @@ document.addEventListener("DOMContentLoaded", function() {
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] rrvgo_1.1.1      knitr_1.29       BiocStyle_2.16.0
+## [1] rrvgo_1.1.1      knitr_1.30       BiocStyle_2.16.1
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] ggrepel_0.8.2        Rcpp_1.0.5           GO.db_3.11.4        
 ##  [4] assertthat_0.2.1     rprojroot_1.3-2      digest_0.6.25       
 ##  [7] gridBase_0.4-7       mime_0.9             slam_0.1-47         
 ## [10] R6_2.4.1             backports_1.1.10     stats4_4.0.2        
-## [13] RSQLite_2.2.0        evaluate_0.14        ggplot2_3.3.2       
+## [13] RSQLite_2.2.1        evaluate_0.14        ggplot2_3.3.2       
 ## [16] pillar_1.4.6         rlang_0.4.7          data.table_1.13.0   
-## [19] blob_1.2.1           S4Vectors_0.26.1     rmarkdown_2.3       
+## [19] blob_1.2.1           S4Vectors_0.26.1     rmarkdown_2.4       
 ## [22] pkgdown_1.6.1        labeling_0.3         desc_1.2.0          
-## [25] stringr_1.4.0        igraph_1.2.5         treemap_2.4-2       
-## [28] pheatmap_1.0.12      bit_4.0.4            munsell_0.5.0       
+## [25] stringr_1.4.0        igraph_1.2.5         pheatmap_1.0.12     
+## [28] bit_4.0.4            munsell_0.5.0        treemap_2.4-2       
 ## [31] shiny_1.5.0          compiler_4.0.2       httpuv_1.5.4        
-## [34] xfun_0.17            pkgconfig_2.0.3      systemfonts_0.3.1   
+## [34] xfun_0.18            pkgconfig_2.0.3      systemfonts_0.3.2   
 ## [37] BiocGenerics_0.34.0  htmltools_0.5.0      tidyselect_1.1.0    
 ## [40] tibble_3.0.3         bookdown_0.20        IRanges_2.22.2      
 ## [43] codetools_0.2-16     crayon_1.3.4         dplyr_1.0.2         
@@ -376,7 +367,7 @@ document.addEventListener("DOMContentLoaded", function() {
 ## [70] Biobase_2.48.0       glue_1.4.2           purrr_0.3.4         
 ## [73] parallel_4.0.2       fastmap_1.0.1        yaml_2.2.1          
 ## [76] AnnotationDbi_1.50.3 tm_0.7-7             colorspace_1.4-1    
-## [79] BiocManager_1.30.10  cpp11_0.2.1          memoise_1.1.0</code></pre>
+## [79] BiocManager_1.30.10  memoise_1.1.0</code></pre>
 </div>
 </div>
   </div>
